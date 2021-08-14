@@ -1,37 +1,25 @@
 import * as THREE from '/three.js/build/three.module.js';
 import { OrbitControls } from '/three.js/examples/jsm/controls/OrbitControls.js';
 import { TubePainter } from '/three.js/examples/jsm/misc/TubePainter.js';
-import { VRButton } from '/three.js/examples/jsm/webxr/VRButton.js';
 import { STLLoader } from '/three.js/examples/jsm/loaders/STLLoader.js';
 
-let camera, scene, renderer;
-let controller1, controller2;
-
-let dart;
-
-let flyingDarts = [];
-
-const cursor = new THREE.Vector3();
-
-let controls;
-
-new STLLoader().load('/enovikov11-apps/dart.stl', loadedDart => {
-    dart = loadedDart;
-    init();
-    animate();
-})
-
-setInterval(() => {
-    flyingDarts.forEach(item => {
-        if (item.counter < 1000) {
-            item.counter++;
-            item.mesh.translateY(-0.025);
-        }
-
+export async function init() {
+    const dart = await new Promise(res => {
+        new STLLoader().load('/enovikov11-apps/dart.stl', res);
     });
-}, 10);
 
-function init() {
+    let camera, scene, renderer = new THREE.WebGLRenderer({ antialias: true });
+    let controller1, controller2;
+    let flyingDarts = [];
+    let controls;
+
+
+
+
+
+
+
+
 
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -68,7 +56,7 @@ function init() {
     scene.add(floor);
 
     const grid = new THREE.GridHelper(10, 20, 0x111111, 0x111111);
-    // grid.material.depthTest = false; // avoid z-fighting
+
     scene.add(grid);
 
     scene.add(new THREE.HemisphereLight(0x888877, 0x777788));
@@ -77,7 +65,7 @@ function init() {
     light.position.set(0, 4, 0);
     scene.add(light);
 
-    //
+
 
     const painter1 = new TubePainter();
     scene.add(painter1.mesh);
@@ -85,18 +73,18 @@ function init() {
     const painter2 = new TubePainter();
     scene.add(painter2.mesh);
 
-    //
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+
+
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.xr.enabled = true;
     container.appendChild(renderer.domElement);
 
-    document.body.appendChild(VRButton.createButton(renderer));
 
-    // controllers
+
+
 
     function onSelectStart() {
 
@@ -110,41 +98,19 @@ function init() {
 
     }
 
-    function onSqueezeStart() {
-
-        this.userData.isSqueezing = true;
-        this.userData.positionAtSqueezeStart = this.position.y;
-        this.userData.scaleAtSqueezeStart = this.scale.x;
-
-    }
-
-    function onSqueezeEnd() {
-
-        this.userData.isSqueezing = false;
-
-    }
 
     controller1 = renderer.xr.getController(0);
     controller1.addEventListener('selectstart', onSelectStart);
     controller1.addEventListener('selectend', onSelectEnd);
-    // controller1.addEventListener('squeezestart', onSqueezeStart);
-    // controller1.addEventListener('squeezeend', onSqueezeEnd);
     controller1.userData.painter = painter1;
     scene.add(controller1);
 
     controller2 = renderer.xr.getController(1);
     controller2.addEventListener('selectstart', onSelectStart);
     controller2.addEventListener('selectend', onSelectEnd);
-    // controller2.addEventListener('squeezestart', onSqueezeStart);
-    // controller2.addEventListener('squeezeend', onSqueezeEnd);
     controller2.userData.painter = painter2;
     scene.add(controller2);
 
-    //
-
-    // const geometry = new THREE.CylinderGeometry(0.01, 0.02, 0.08, 5);
-    // dart.rotateX(- Math.PI / 2);
-    // dart.scale(0.1);
     const material = new THREE.MeshStandardMaterial({ flatShading: true });
     const mesh = new THREE.Mesh(dart, material);
 
@@ -156,84 +122,67 @@ function init() {
     controller1.add(mesh.clone());
     controller2.add(mesh.clone());
 
-    //
+
 
     window.addEventListener('resize', onWindowResize);
 
-}
-
-function onWindowResize() {
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-}
-
-//
-
-function handleController(controller) {
-
-    const userData = controller.userData;
-
-    const pivot = controller.getObjectByName('pivot');
-
-    if (userData.spawn) {
-        userData.spawn = false;
-
-        const material = new THREE.MeshStandardMaterial({ flatShading: true });
-        const mesh = new THREE.Mesh(dart, material);
-
-        // mesh.setFromMatrixPosition(pivot.matrixWorld);
-
-        mesh.position.copy(controller.position);
-        mesh.rotation.copy(controller.rotation);
-
-        flyingDarts.push({ mesh, counter: 0 });
-        scene.add(mesh);
-    }
-
-    // const painter = userData.painter;
-
-
-
-    // if (userData.isSqueezing === true) {
-
-    // 	const delta = (controller.position.y - userData.positionAtSqueezeStart) * 5;
-    // 	const scale = Math.max(0.1, userData.scaleAtSqueezeStart + delta);
-
-    // 	// pivot.scale.setScalar(scale);
-    // 	painter.setSize(scale);
-
-    // }
-
-    // cursor.setFromMatrixPosition(pivot.matrixWorld);
-
-    // if (userData.isSelecting === true) {
-
-    // 	painter.lineTo(cursor);
-    // 	painter.update();
-
-    // } else {
-
-    // 	painter.moveTo(cursor);
-
-    // }
-
-}
-
-function animate() {
 
     renderer.setAnimationLoop(render);
 
-}
+    setInterval(() => {
+        flyingDarts.forEach(item => {
+            if (item.counter < 1000) {
+                item.counter++;
+                item.mesh.translateY(-0.025);
+            }
 
-function render() {
+        });
+    }, 10);
 
-    handleController(controller1);
-    handleController(controller2);
 
-    renderer.render(scene, camera);
+    function render() {
 
+        handleController(controller1);
+        handleController(controller2);
+
+        renderer.render(scene, camera);
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+    }
+
+
+
+    function handleController(controller) {
+        const userData = controller.userData;
+
+
+
+        if (userData.spawn) {
+            userData.spawn = false;
+
+            const material = new THREE.MeshStandardMaterial({ flatShading: true });
+            const mesh = new THREE.Mesh(dart, material);
+
+
+
+            mesh.position.copy(controller.position);
+            mesh.rotation.copy(controller.rotation);
+
+            flyingDarts.push({ mesh, counter: 0 });
+            scene.add(mesh);
+        }
+
+
+
+    }
+
+    return { renderer };
 }
