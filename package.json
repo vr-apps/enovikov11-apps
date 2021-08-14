@@ -1,0 +1,19 @@
+{
+  "name": "enovikov11-apps",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "serve": "cd ../vr-apps.github.io && npm run prod-serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vr-apps/enovikov11-apps.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vr-apps/enovikov11-apps/issues"
+  },
+  "homepage": "https://github.com/vr-apps/enovikov11-apps#readme"
+}
