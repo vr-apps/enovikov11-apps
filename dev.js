@@ -1,38 +1,19 @@
 import * as THREE from '/three.js/build/three.module.js';
-import { OrbitControls } from '/three.js/examples/jsm/controls/OrbitControls.js';
 import { TubePainter } from '/three.js/examples/jsm/misc/TubePainter.js';
 import { STLLoader } from '/three.js/examples/jsm/loaders/STLLoader.js';
 
 export async function init() {
-    const dart = await new Promise(res => {
-        new STLLoader().load('/enovikov11-apps/dart.stl', res);
-    });
+    const dart = await new Promise(res => { new STLLoader().load('/enovikov11-apps/dart.stl', res); });
 
     let camera, scene, renderer = new THREE.WebGLRenderer({ antialias: true });
     let controller1, controller2;
     let flyingDarts = [];
-    let controls;
-
-
-
-
-
-
-
-
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x222222);
 
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 50);
     camera.position.set(0, 1.6, 3);
-
-    controls = new OrbitControls(camera, container);
-    controls.target.set(0, 1.6, 0);
-    controls.update();
 
     const tableGeometry = new THREE.BoxGeometry(0.5, 0.8, 0.5);
     const tableMaterial = new THREE.MeshStandardMaterial({
@@ -65,39 +46,25 @@ export async function init() {
     light.position.set(0, 4, 0);
     scene.add(light);
 
-
-
     const painter1 = new TubePainter();
     scene.add(painter1.mesh);
 
     const painter2 = new TubePainter();
     scene.add(painter2.mesh);
 
-
-
-
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.xr.enabled = true;
-    container.appendChild(renderer.domElement);
-
-
-
-
 
     function onSelectStart() {
-
         this.userData.isSelecting = true;
         this.userData.spawn = true;
     }
 
     function onSelectEnd() {
-
         this.userData.isSelecting = false;
-
     }
-
 
     controller1 = renderer.xr.getController(0);
     controller1.addEventListener('selectstart', onSelectStart);
@@ -122,10 +89,7 @@ export async function init() {
     controller1.add(mesh.clone());
     controller2.add(mesh.clone());
 
-
-
     window.addEventListener('resize', onWindowResize);
-
 
     renderer.setAnimationLoop(render);
 
@@ -139,31 +103,22 @@ export async function init() {
         });
     }, 10);
 
-
     function render() {
-
         handleController(controller1);
         handleController(controller2);
 
         renderer.render(scene, camera);
-
     }
 
     function onWindowResize() {
-
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
 
         renderer.setSize(window.innerWidth, window.innerHeight);
-
     }
-
-
 
     function handleController(controller) {
         const userData = controller.userData;
-
-
 
         if (userData.spawn) {
             userData.spawn = false;
@@ -171,17 +126,12 @@ export async function init() {
             const material = new THREE.MeshStandardMaterial({ flatShading: true });
             const mesh = new THREE.Mesh(dart, material);
 
-
-
             mesh.position.copy(controller.position);
             mesh.rotation.copy(controller.rotation);
 
             flyingDarts.push({ mesh, counter: 0 });
             scene.add(mesh);
         }
-
-
-
     }
 
     return { renderer };
