@@ -1,16 +1,15 @@
 import * as THREE from '/three.js/build/three.module.js';
-import { TubePainter } from '/three.js/examples/jsm/misc/TubePainter.js';
 import { STLLoader } from '/three.js/examples/jsm/loaders/STLLoader.js';
 
 export async function init() {
     const dartGeomentry = await new Promise(res => { new STLLoader().load('/enovikov11-apps/dart.stl', res); }),
         dartMatrial = new THREE.MeshStandardMaterial({ flatShading: true }),
-        dart = new THREE.Mesh(dartGeomentry, dartMatrial);
-
-    let camera = new THREE.PerspectiveCamera(50, 1, 0.01, 50),
+        dart = new THREE.Mesh(dartGeomentry, dartMatrial),
+        camera = new THREE.PerspectiveCamera(50, 1, 0.01, 50),
         scene = new THREE.Scene(),
-        renderer = new THREE.WebGLRenderer({ antialias: true }),
-        flyingDarts = [];
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+
+    let lastUpdatedAt = Date.now(), flyingDarts = [];
 
     camera.position.set(0, 1.6, 3);
 
@@ -41,16 +40,21 @@ export async function init() {
         scene.add(controller);
     });
 
-    renderer.setAnimationLoop(() => { renderer.render(scene, camera); });
+    renderer.setAnimationLoop(() => {
+        const newTime = Date.now();
+        const timeDelta = newTime - lastUpdatedAt;
+        lastUpdatedAt = newTime;
 
-    setInterval(() => {
+        const translateDelta = -0.0025 * timeDelta;
         flyingDarts.forEach(item => {
-            if (item.counter < 1000) {
-                item.counter++;
-                item.mesh.translateY(-0.025);
-            }
+            item.counter++;
+            item.mesh.translateY(translateDelta);
         });
-    }, 10);
+
+        flyingDarts = flyingDarts.filter(({ counter }) => counter < 1000);
+
+        renderer.render(scene, camera);
+    });
 
     return { renderer };
 }
