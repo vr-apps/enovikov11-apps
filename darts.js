@@ -1,8 +1,6 @@
 import * as THREE from '/three.js/build/three.module.js';
 import { STLLoader } from '/three.js/examples/jsm/loaders/STLLoader.js';
 
-// mesh.position ; mesh.quaternion ; .copy
-
 export async function init() {
     const dartGeomentry = await new Promise(res => { new STLLoader().load('/enovikov11-apps/dart.stl', res); }),
         dartMatrial = new THREE.MeshStandardMaterial({ flatShading: true }),
